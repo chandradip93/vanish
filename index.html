@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#008069">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Vanish">
+  <meta name="apple-mobile-web-app-title" content="Aradhrika">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
-  <title>Vanish — 24-Hour Private Messenger</title>
+  <title>Aradhrika Personal Messaging App</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&family=Bricolage+Grotesque:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -590,13 +590,13 @@
   <div id="auth-screen">
     <div class="auth-card">
       <div class="auth-brand">
-        <img src="icons/icon.svg" alt="Vanish Logo">
-        <h2>Vanish</h2>
+        <img src="icons/icon.svg" alt="Aradhrika Logo">
+        <h2>Aradhrika</h2>
       </div>
 
       <!-- Step 1: Phone Entry with Country Selector -->
       <div id="step-phone">
-        <p class="auth-subtitle">Verify your phone number with international code to start private chatting.</p>
+        <p class="auth-subtitle"><b>Aradhrika Personal Messaging App</b><br>Verify your phone number with international code to start private chatting.</p>
         
         <div class="phone-input-row">
           <select id="country-code" class="country-select">
@@ -663,7 +663,7 @@
 
         <div class="form-group">
           <label>About / Status:</label>
-          <input id="reg-about" class="form-input" value="Hey there! I am using Vanish" maxlength="120">
+          <input id="reg-about" class="form-input" value="Hey there! I am using Aradhrika Personal Messaging App" maxlength="120">
         </div>
 
         <button class="btn-wa" id="btn-save-profile">Complete & Start Chatting</button>
@@ -710,7 +710,7 @@
     <!-- Empty State Placeholder when no chat is open -->
     <div id="empty-state">
       <img src="icons/icon.svg" style="width:72px;height:72px;opacity:0.85;margin-bottom:12px;" alt="Logo">
-      <h3>Vanish Web</h3>
+      <h3>Aradhrika Personal Messaging App</h3>
       <p style="font-size:14px;line-height:1.5;">Send private messages, photos, and videos with 24-hour self-destruction. Choose a chat from the left or start a new conversation.</p>
       <div style="margin-top:16px;">
         <button class="btn-wa" id="btn-start-chat-empty" style="display:inline-flex;width:auto;padding:10px 20px;">Start New Chat</button>
@@ -1042,7 +1042,7 @@ function initAppSession() {
 }
 
 $('btn-logout').onclick = async () => {
-  if (confirm('Log out of Vanish?')) {
+  if (confirm('Log out of Aradhrika?')) {
     if (myToken) {
       await fetch('/api/auth/logout', {
         method: 'POST',

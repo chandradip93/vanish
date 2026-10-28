@@ -1,5 +1,5 @@
 /**
- * Vanish — 24-Hour Ephemeral Messenger Backend
+ * Aradhrika Personal Messaging App — 24-Hour Ephemeral Messenger Backend
  * Production Architecture: Node.js 24 + Native SQLite (node:sqlite) + Real-Time SSE
  * Features:
  *   - E.164 Phone Validation & Verification
@@ -38,7 +38,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     phone TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    about TEXT DEFAULT 'Hey there! I am using Vanish',
+    about TEXT DEFAULT 'Hey there! I am using Aradhrika Personal Messaging App',
     avatar_color TEXT DEFAULT '#00a884',
     avatar_url TEXT,
     created_at INTEGER NOT NULL,
@@ -403,7 +403,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/status' && req.method === 'GET') {
       return sendJson(res, 200, {
         status: 'online',
-        app: 'Vanish',
+        app: 'Aradhrika Personal Messaging App',
         version: '2.0.0',
         db: 'SQLite (node:sqlite DatabaseSync)',
         ttlHours: 24,
@@ -451,7 +451,7 @@ const server = http.createServer(async (req, res) => {
       stmtSaveCode.run(phone, code, expiresAt);
 
       console.log(`\n=================================================`);
-      console.log(`[VANISH SMS OTP CODE]`);
+      console.log(`[ARADHRIKA SMS OTP CODE]`);
       console.log(`To:      ${phone}`);
       console.log(`Code:    ${code}`);
       console.log(`Expires: 10 minutes`);
@@ -516,7 +516,7 @@ const server = http.createServer(async (req, res) => {
       const phone = session.phone;
       const body = await readJsonBody(req);
       const name = (body.name || '').trim();
-      const about = (body.about || 'Hey there! I am using Vanish').trim().slice(0, 140);
+      const about = (body.about || 'Hey there! I am using Aradhrika Personal Messaging App').trim().slice(0, 140);
       const avatarColor = (body.avatarColor || '#00a884').trim();
       const avatarUrl = (body.avatarUrl || '').trim();
 
@@ -873,7 +873,7 @@ if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`
 ┌─────────────────────────────────────────────────────────┐
-│                      VANISH SERVER                      │
+│            ARADHRIKA PERSONAL MESSAGING APP             │
 │       24-Hour Ephemeral Messenger (Senior Stack)        │
 ├─────────────────────────────────────────────────────────┤
 │  Local URL:        http://localhost:${PORT}                │

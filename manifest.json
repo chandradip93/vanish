@@ -1,11 +1,11 @@
 {
-  "name": "Vanish - 24h Private Messenger",
-  "short_name": "Vanish",
-  "description": "A private messenger where everything disappears in 24 hours.",
+  "name": "Aradhrika Personal Messaging App",
+  "short_name": "Aradhrika",
+  "description": "Aradhrika Personal Messaging App — Private messenger where messages, photos, and videos disappear in 24 hours.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#EEF2F1",
-  "theme_color": "#0E7C66",
+  "background_color": "#EFEAE2",
+  "theme_color": "#008069",
   "orientation": "portrait-primary",
   "icons": [
     {

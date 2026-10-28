@@ -1,20 +1,20 @@
 {
-  "name": "vanish",
+  "name": "aradhrika",
   "version": "1.0.0",
-  "description": "Vanish: A private messenger where everything disappears in 24 hours",
+  "description": "Aradhrika Personal Messaging App: 24-Hour Ephemeral Private Messenger",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node test/server.test.js"
   },
   "keywords": [
-    "vanish",
+    "aradhrika",
     "messenger",
+    "chat",
     "ephemeral",
     "privacy",
-    "pwa",
-    "chat"
+    "pwa"
   ],
-  "author": "Antigravity",
+  "author": "Chandradip Banerjee",
   "license": "MIT"
 }

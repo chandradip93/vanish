@@ -1,5 +1,5 @@
 /**
- * Senior Developer Test Suite for Vanish
+ * Senior Developer Test Suite for Aradhrika Personal Messaging App
  * Verifies E.164 Validation, User Signup & DB Storage, Read Receipts, Profiles, Typing, and 24h Vanish TTL
  */
 const { Readable, Writable } = require('node:stream');
@@ -68,7 +68,7 @@ function simulateRequest(method, url, headers = {}, body = null) {
 }
 
 async function runTestSuite() {
-  console.log('🧪 Starting Vanish Production Test Suite...\n');
+  console.log('🧪 Starting Aradhrika Personal Messaging App Test Suite...\n');
 
   // Clean test fixtures
   db.exec("DELETE FROM users WHERE phone IN ('+919876543210', '+15550100999');");
@@ -159,11 +159,11 @@ async function runTestSuite() {
   const msgRes = await simulateRequest('POST', '/api/messages', {}, {
     chatId,
     from: userA,
-    text: 'Hello from Vanish! This message disappears in 24 hours.'
+    text: 'Hello from Aradhrika Personal Messaging App! This message disappears in 24 hours.'
   });
   assert.strictEqual(msgRes.status, 201);
   assert.strictEqual(msgRes.body.ok, true);
-  assert.strictEqual(msgRes.body.message.text, 'Hello from Vanish! This message disappears in 24 hours.');
+  assert.strictEqual(msgRes.body.message.text, 'Hello from Aradhrika Personal Messaging App! This message disappears in 24 hours.');
   assert.ok(msgRes.body.message.expireAt > Date.now() + 86000000);
   console.log('✅ Message stored in SQLite with status & 24h expiration timestamp.');
 
@@ -244,7 +244,7 @@ async function runTestSuite() {
   assert.strictEqual(fs.existsSync(expiredFilePath), false, 'Expired media file must be unlinked from disk');
   console.log('✅ 24-Hour Auto-Deleter pruned expired database record and media file.');
 
-  console.log('\n🎉 ALL 12 TESTS PASSED! Production Vanish is 100% verified.\n');
+  console.log('\n🎉 ALL 12 TESTS PASSED! Aradhrika Personal Messaging App is 100% verified.\n');
   process.exit(0);
 }
 
