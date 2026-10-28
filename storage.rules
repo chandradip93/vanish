@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /media/{chatId}/{file} {
+      allow read: if request.auth != null
+        && request.auth.token.phone_number in chatId.split('_');
+      allow write: if request.auth != null
+        && request.auth.token.phone_number in chatId.split('_')
+        && request.resource.size < 50 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+        || request.resource.contentType.matches('video/.*'));
+    }
+  }
+}

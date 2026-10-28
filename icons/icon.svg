@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E7C66"/>
+      <stop offset="100%" stop-color="#095445"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <!-- Background squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#grad)"/>
+  
+  <!-- Outer subtle glowing ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="6" stroke-dasharray="8 12"/>
+
+  <!-- Main message bubble -->
+  <g filter="url(#shadow)">
+    <path d="M 170 145 
+             C 240 145, 340 145, 360 145
+             C 390 145, 400 160, 400 190
+             L 400 270
+             C 400 300, 390 315, 360 315
+             L 245 315
+             L 180 365
+             L 192 315
+             L 170 315
+             C 140 315, 125 300, 125 270
+             L 125 190
+             C 125 160, 140 145, 170 145 Z" 
+          fill="#FFFFFF" />
+  </g>
+
+  <!-- 24h Timer / Vanish Clock element in center -->
+  <circle cx="265" cy="230" r="42" fill="none" stroke="#0E7C66" stroke-width="7"/>
+  <!-- Clock hands at 24h vanish mark -->
+  <polyline points="265,202 265,230 285,230" fill="none" stroke="#0E7C66" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Disappearing / vanishing particles floating off the bubble -->
+  <circle cx="395" cy="155" r="7" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="418" cy="140" r="5" fill="#FFFFFF" opacity="0.75"/>
+  <circle cx="435" cy="165" r="4" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="445" cy="130" r="3.5" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="420" cy="185" r="3" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="455" cy="152" r="2.5" fill="#FFFFFF" opacity="0.35"/>
+</svg>

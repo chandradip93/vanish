@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#008069">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Vanish">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <title>Vanish — 24-Hour Private Messenger</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&family=Bricolage+Grotesque:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wa-teal: #008069;
+      --wa-teal-dark: #006b57;
+      --wa-green: #00a884;
+      --wa-green-light: #25D366;
+      --wa-bg: #EFEAE2;
+      --wa-chat-bg: #EFEAE2;
+      --wa-bubble-me: #D9FDD3;
+      --wa-bubble-other: #FFFFFF;
+      --wa-card: #FFFFFF;
+      --wa-line: #E9EDEF;
+      --wa-text: #111B21;
+      --wa-muted: #667781;
+      --wa-blue-tick: #53bdeb;
+      --wa-gray-tick: #8696a0;
+      --wa-hover: #F5F6F6;
+      --wa-active: #F0F2F5;
+      --wa-err: #EA0038;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #D1D7DB;
+      color: var(--wa-text);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; transition: background 0.15s, opacity 0.15s; }
+    button:active { opacity: 0.85; }
+    .hide { display: none !important; }
+
+    /* App Shell Container (WhatsApp Web Style 2-pane) */
+    #wa-container {
+      width: 100vw;
+      height: 100vh;
+      max-width: 1600px;
+      max-height: 100vh;
+      background: #fff;
+      display: flex;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    @media (min-width: 1200px) {
+      body { padding: 18px 0; background: linear-gradient(180deg, #00a884 126px, #eae6df 126px); }
+      #wa-container { height: calc(100vh - 36px); border-radius: 8px; }
+    }
+
+    /* ---------------------------------------------------------
+       Authentication & Registration Flow
+       --------------------------------------------------------- */
+    #auth-screen {
+      width: 100%;
+      height: 100%;
+      background: #F0F2F5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 4px 16px rgba(11,20,26,0.08);
+      text-align: center;
+    }
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .auth-brand img { width: 48px; height: 48px; border-radius: 12px; }
+    .auth-brand h2 { margin: 0; font-size: 24px; color: var(--wa-teal); font-weight: 700; }
+    .auth-subtitle { color: var(--wa-muted); font-size: 14.5px; margin-bottom: 24px; line-height: 1.4; }
+
+    /* Phone Input Layout */
+    .phone-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .country-select {
+      width: 130px;
+      padding: 12px 8px;
+      border: 1.5px solid var(--wa-line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      color: var(--wa-text);
+      cursor: pointer;
+    }
+    .phone-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1.5px solid var(--wa-line);
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+    .phone-input:focus, .country-select:focus, .form-input:focus {
+      border-color: var(--wa-green);
+    }
+    .btn-wa {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      background: var(--wa-teal);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-wa:hover { background: var(--wa-teal-dark); }
+    .auth-error {
+      color: var(--wa-err);
+      font-size: 13px;
+      min-height: 18px;
+      margin-top: 10px;
+      text-align: left;
+    }
+    .test-box {
+      background: #F0F2F5;
+      border-left: 4px solid var(--wa-teal);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      color: var(--wa-text);
+      margin-top: 20px;
+      text-align: left;
+    }
+    .test-box b { color: var(--wa-teal); }
+
+    /* Profile Setup Step */
+    .avatar-picker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .big-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--wa-green);
+      color: #fff;
+      font-size: 32px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .color-swatches {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #ccc;
+    }
+    .color-swatch.active { box-shadow: 0 0 0 2.5px var(--wa-teal); }
+    .form-group { text-align: left; margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--wa-muted); margin-bottom: 5px; }
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--wa-line);
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    /* ---------------------------------------------------------
+       Main WhatsApp Layout (Sidebar & Main Chat Area)
+       --------------------------------------------------------- */
+    #sidebar {
+      width: 380px;
+      background: #FFFFFF;
+      border-right: 1px solid var(--wa-line);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100%;
+    }
+    #main-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--wa-chat-bg);
+      position: relative;
+      height: 100%;
+      min-width: 0;
+    }
+
+    /* Top Nav Bars */
+    .top-bar {
+      height: 60px;
+      background: #F0F2F5;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--wa-line);
+      flex-shrink: 0;
+    }
+    .user-profile-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--wa-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #54656f;
+      font-size: 19px;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-btn:hover { background: rgba(0,0,0,0.06); }
+
+    /* Search & Filter Header */
+    .search-row {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--wa-line);
+      background: #fff;
+    }
+    .search-box {
+      background: #F0F2F5;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 6px 12px;
+      gap: 8px;
+    }
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+      width: 100%;
+      color: var(--wa-text);
+    }
+
+    /* Chat List */
+    #chat-list {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f2f2f2;
+      cursor: pointer;
+      gap: 12px;
+      transition: background 0.1s;
+    }
+    .chat-row:hover { background: var(--wa-hover); }
+    .chat-row.active { background: var(--wa-active); }
+    .chat-row-info { flex: 1; min-width: 0; }
+    .chat-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 3px;
+    }
+    .chat-name {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--wa-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-time { font-size: 12px; color: var(--wa-muted); }
+    .chat-row-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13.5px;
+      color: var(--wa-muted);
+    }
+    .chat-snippet {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .vanish-pill {
+      font-size: 10.5px;
+      background: rgba(0, 168, 132, 0.15);
+      color: var(--wa-teal);
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .online-indicator {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--wa-green-light);
+      display: inline-block;
+      margin-left: 4px;
+    }
+
+    /* ---------------------------------------------------------
+       Active Conversation Pane
+       --------------------------------------------------------- */
+    #conversation-header {
+      background: #F0F2F5;
+      padding: 10px 16px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--wa-line);
+      flex-shrink: 0;
+    }
+    #back-btn { display: none; margin-right: -4px; }
+    .convo-partner-details { flex: 1; min-width: 0; }
+    .convo-partner-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--wa-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .convo-partner-status {
+      font-size: 12.5px;
+      color: var(--wa-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .convo-partner-status.online { color: var(--wa-green); font-weight: 600; }
+    .vanish-banner {
+      background: #FFEECD;
+      color: #6A4B00;
+      font-size: 12px;
+      padding: 6px 12px;
+      text-align: center;
+      border-bottom: 1px solid #FFE4A0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Messages Stream & Wallpaper Pattern */
+    #messages-viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background-color: #EFEAE2;
+      background-image: radial-gradient(#d3cbbd 1px, transparent 1px);
+      background-size: 20px 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bubble {
+      max-width: 65%;
+      padding: 7px 10px 6px;
+      border-radius: 8px;
+      font-size: 14.5px;
+      line-height: 1.4;
+      position: relative;
+      word-wrap: break-word;
+      box-shadow: 0 1px 1px rgba(11,20,26,0.12);
+    }
+    .bubble.me {
+      background: var(--wa-bubble-me);
+      align-self: flex-end;
+      border-top-right-radius: 2px;
+    }
+    .bubble.other {
+      background: var(--wa-bubble-other);
+      align-self: flex-start;
+      border-top-left-radius: 2px;
+    }
+    .bubble img, .bubble video {
+      max-width: 100%;
+      border-radius: 6px;
+      display: block;
+      margin-bottom: 4px;
+      max-height: 320px;
+      cursor: pointer;
+    }
+    .bubble-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--wa-muted);
+      margin-top: 3px;
+      user-select: none;
+    }
+    .bubble-timer {
+      font-size: 10px;
+      background: rgba(0,0,0,0.06);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    .ticks { font-size: 13px; font-weight: bold; }
+    .ticks.blue { color: var(--wa-blue-tick); }
+    .ticks.gray { color: var(--wa-gray-tick); }
+
+    .bubble.vanishing {
+      animation: bubbleVanish 0.5s ease forwards;
+    }
+    @keyframes bubbleVanish {
+      to { opacity: 0; transform: scale(0.9) translateY(-10px); }
+    }
+
+    /* Message Compose Bar */
+    #compose-bar {
+      background: #F0F2F5;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      border-top: 1px solid var(--wa-line);
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    #msg-input {
+      flex: 1;
+      padding: 10px 16px;
+      background: #fff;
+      border: 1px solid #fff;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      color: var(--wa-text);
+    }
+    #msg-input:focus { border-color: var(--wa-line); }
+    .btn-send {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      background: var(--wa-teal);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .btn-send:hover { background: var(--wa-teal-dark); }
+
+    /* Emoji Panel */
+    #emoji-panel {
+      background: #fff;
+      border-top: 1px solid var(--wa-line);
+      padding: 8px 16px;
+      display: flex;
+      gap: 12px;
+      font-size: 22px;
+      overflow-x: auto;
+    }
+    .emoji-item { cursor: pointer; user-select: none; transition: transform 0.1s; }
+    .emoji-item:hover { transform: scale(1.25); }
+
+    /* Modals / Drawers */
+    .wa-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(11,20,26,0.65);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .wa-modal-box {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .wa-modal-header {
+      background: var(--wa-teal);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wa-modal-header h3 { margin: 0; font-size: 18px; }
+    .wa-modal-body { padding: 20px; max-height: 80vh; overflow-y: auto; }
+
+    /* Empty State */
+    #empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--wa-muted);
+      padding: 32px;
+      max-width: 400px;
+    }
+    #empty-state h3 { color: var(--wa-text); margin-bottom: 6px; }
+
+    /* Mobile Responsive Screen Toggling */
+    @media (max-width: 768px) {
+      #sidebar { width: 100%; }
+      #wa-container.in-chat #sidebar { display: none; }
+      #wa-container:not(.in-chat) #main-chat { display: none; }
+      #back-btn { display: inline-flex; }
+      .bubble { max-width: 82%; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="wa-container">
+
+  <!-- =========================================================
+       Authentication & Signup Screen
+       ========================================================= -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <img src="icons/icon.svg" alt="Vanish Logo">
+        <h2>Vanish</h2>
+      </div>
+
+      <!-- Step 1: Phone Entry with Country Selector -->
+      <div id="step-phone">
+        <p class="auth-subtitle">Verify your phone number with international code to start private chatting.</p>
+        
+        <div class="phone-input-row">
+          <select id="country-code" class="country-select">
+            <option value="+91" selected>🇮🇳 India (+91)</option>
+            <option value="+1">🇺🇸 USA / Canada (+1)</option>
+            <option value="+44">🇬🇧 UK (+44)</option>
+            <option value="+61">🇦🇺 Australia (+61)</option>
+            <option value="+49">🇩🇪 Germany (+49)</option>
+            <option value="+971">🇦🇪 UAE (+971)</option>
+            <option value="+65">🇸🇬 Singapore (+65)</option>
+            <option value="+33">🇫🇷 France (+33)</option>
+            <option value="+81">🇯🇵 Japan (+81)</option>
+            <option value="+custom">🌍 Custom (+...)</option>
+          </select>
+          <input id="phone-number" class="phone-input" type="tel" placeholder="98765 43210" autocomplete="tel">
+        </div>
+        <div id="custom-code-box" class="hide" style="margin-bottom:12px;text-align:left;">
+          <input id="custom-country-code" class="form-input" placeholder="+ country code (e.g. +34)" style="width:100%;">
+        </div>
+
+        <button class="btn-wa" id="btn-send-code">Next / Send Code</button>
+        <div class="auth-error" id="phone-err"></div>
+
+        <div class="test-box">
+          💡 <b>Instant Testing:</b> You can use <b>+91 98765 43210</b> and <b>+1 555 0100 22</b> with OTP <b>123456</b>.
+        </div>
+      </div>
+
+      <!-- Step 2: 6-Digit OTP Verification -->
+      <div id="step-otp" class="hide">
+        <p class="auth-subtitle">Enter the 6-digit verification code sent to <b id="display-target-phone"></b>.</p>
+        <div class="form-group">
+          <input id="otp-input" class="form-input" style="text-align:center;letter-spacing:6px;font-size:22px;font-weight:700;" maxlength="6" inputmode="numeric" placeholder="123456">
+        </div>
+        <button class="btn-wa" id="btn-verify-otp">Verify Code</button>
+        <div class="auth-error" id="otp-err"></div>
+        <div style="margin-top:14px;">
+          <button id="btn-wrong-number" style="background:none;border:none;color:var(--wa-teal);font-weight:600;">Wrong number?</button>
+        </div>
+      </div>
+
+      <!-- Step 3: User Registration Details (Stored in DB) -->
+      <div id="step-profile" class="hide">
+        <p class="auth-subtitle"><b>Profile info</b><br>Please provide your name and optional status.</p>
+        
+        <div class="avatar-picker">
+          <div class="big-avatar" id="avatar-preview">U</div>
+          <div class="color-swatches">
+            <span class="color-swatch active" style="background:#00a884" data-color="#00a884"></span>
+            <span class="color-swatch" style="background:#008069" data-color="#008069"></span>
+            <span class="color-swatch" style="background:#1f7a8c" data-color="#1f7a8c"></span>
+            <span class="color-swatch" style="background:#7b2cbf" data-color="#7b2cbf"></span>
+            <span class="color-swatch" style="background:#e63946" data-color="#e63946"></span>
+            <span class="color-swatch" style="background:#f77f00" data-color="#f77f00"></span>
+            <span class="color-swatch" style="background:#457b9d" data-color="#457b9d"></span>
+          </div>
+          <span style="font-size:11.5px;color:var(--wa-muted);">Select avatar color</span>
+        </div>
+
+        <div class="form-group">
+          <label>Type your name (Required):</label>
+          <input id="reg-name" class="form-input" placeholder="e.g. Chandradip Banerjee" maxlength="50">
+        </div>
+
+        <div class="form-group">
+          <label>About / Status:</label>
+          <input id="reg-about" class="form-input" value="Hey there! I am using Vanish" maxlength="120">
+        </div>
+
+        <button class="btn-wa" id="btn-save-profile">Complete & Start Chatting</button>
+        <div class="auth-error" id="profile-err"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       WhatsApp Sidebar (Contacts & Recent Chats)
+       ========================================================= -->
+  <div id="sidebar">
+    <!-- Top Bar with User Avatar & Actions -->
+    <div class="top-bar">
+      <div class="user-profile-summary" id="my-profile-trigger" title="Edit Profile">
+        <div class="avatar" id="my-avatar">U</div>
+        <div style="line-height:1.2;">
+          <div style="font-weight:600;font-size:14.5px;" id="my-display-name">My Account</div>
+          <div style="font-size:12px;color:var(--wa-muted);" id="my-display-phone"></div>
+        </div>
+      </div>
+      <div class="bar-actions">
+        <button class="icon-btn" id="btn-new-chat-modal" title="New Chat">💬</button>
+        <button class="icon-btn" id="btn-logout" title="Log Out">🚪</button>
+      </div>
+    </div>
+
+    <!-- Search / Filter Bar -->
+    <div class="search-row">
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="chat-search-input" placeholder="Search or start new chat">
+      </div>
+    </div>
+
+    <!-- Chat Items List -->
+    <div id="chat-list"></div>
+  </div>
+
+  <!-- =========================================================
+       WhatsApp Main Chat View
+       ========================================================= -->
+  <div id="main-chat">
+    <!-- Empty State Placeholder when no chat is open -->
+    <div id="empty-state">
+      <img src="icons/icon.svg" style="width:72px;height:72px;opacity:0.85;margin-bottom:12px;" alt="Logo">
+      <h3>Vanish Web</h3>
+      <p style="font-size:14px;line-height:1.5;">Send private messages, photos, and videos with 24-hour self-destruction. Choose a chat from the left or start a new conversation.</p>
+      <div style="margin-top:16px;">
+        <button class="btn-wa" id="btn-start-chat-empty" style="display:inline-flex;width:auto;padding:10px 20px;">Start New Chat</button>
+      </div>
+    </div>
+
+    <!-- Active Conversation Interface -->
+    <div id="active-convo" class="hide" style="display:flex;flex-direction:column;height:100%;">
+      <!-- Conversation Top Bar -->
+      <div id="conversation-header">
+        <button class="icon-btn" id="back-btn">‹</button>
+        <div class="avatar" id="convo-partner-avatar">?</div>
+        <div class="convo-partner-details">
+          <div class="convo-partner-name" id="convo-partner-name">Contact</div>
+          <div class="convo-partner-status" id="convo-partner-status">offline</div>
+        </div>
+        <div class="bar-actions">
+          <span class="vanish-pill" title="Messages disappear after 24 hours">⏱️ 24h Vanish</span>
+        </div>
+      </div>
+
+      <!-- Security Notice -->
+      <div class="vanish-banner">
+        🔒 <b>Ephemeral Security:</b> Messages and media in this chat automatically vanish after 24 hours.
+      </div>
+
+      <!-- Message Viewport -->
+      <div id="messages-viewport"></div>
+
+      <!-- Emoji Drawer -->
+      <div id="emoji-panel" class="hide">
+        <span class="emoji-item">😀</span>
+        <span class="emoji-item">😂</span>
+        <span class="emoji-item">❤️</span>
+        <span class="emoji-item">👍</span>
+        <span class="emoji-item">🔥</span>
+        <span class="emoji-item">🎉</span>
+        <span class="emoji-item">🙏</span>
+        <span class="emoji-item">👏</span>
+        <span class="emoji-item">🚀</span>
+        <span class="emoji-item">🤫</span>
+        <span class="emoji-item">⏳</span>
+      </div>
+
+      <!-- Uploading Banner -->
+      <div id="uploading-indicator" class="hide" style="background:#E3F1ED;color:var(--wa-teal);padding:8px 16px;font-size:13px;display:flex;align-items:center;gap:8px;">
+        <div style="width:14px;height:14px;border:2px solid var(--wa-teal);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <span id="upload-status-text">Uploading media...</span>
+      </div>
+
+      <!-- Message Compose Bar -->
+      <div id="compose-bar">
+        <button class="icon-btn" id="btn-toggle-emoji" title="Emojis">😊</button>
+        <button class="icon-btn" id="btn-attach-file" title="Attach Photo or Video">+</button>
+        <input id="file-selector" type="file" accept="image/*,video/*" class="hide">
+        <input id="msg-input" placeholder="Type a message" autocomplete="off" maxlength="2000">
+        <button class="btn-send" id="btn-send-msg" title="Send Message">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       New Chat Modal / Contact Directory
+       ========================================================= -->
+  <div id="new-chat-modal" class="wa-modal hide">
+    <div class="wa-modal-box">
+      <div class="wa-modal-header">
+        <h3>New Chat</h3>
+        <button class="icon-btn" style="color:#fff;" id="btn-close-new-chat">✕</button>
+      </div>
+      <div class="wa-modal-body">
+        <div class="form-group">
+          <label>Enter Phone Number with Country Code:</label>
+          <div class="phone-input-row">
+            <select id="modal-country-code" class="country-select">
+              <option value="+91" selected>🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+custom">🌍 Other</option>
+            </select>
+            <input id="modal-phone-input" class="phone-input" placeholder="Phone number">
+          </div>
+          <button class="btn-wa" id="btn-start-chat-by-phone">Start Chat</button>
+        </div>
+
+        <div style="margin:20px 0 10px;font-size:13px;font-weight:700;color:var(--wa-muted);text-transform:uppercase;">
+          Or Select From Registered Directory
+        </div>
+        <input id="dir-search-input" class="form-input" placeholder="Search directory by name..." style="margin-bottom:12px;">
+        <div id="directory-list" style="max-height:200px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       Profile Settings Modal
+       ========================================================= -->
+  <div id="profile-modal" class="wa-modal hide">
+    <div class="wa-modal-box">
+      <div class="wa-modal-header">
+        <h3>Profile Settings</h3>
+        <button class="icon-btn" style="color:#fff;" id="btn-close-profile-modal">✕</button>
+      </div>
+      <div class="wa-modal-body">
+        <div class="form-group">
+          <label>Your Name:</label>
+          <input id="edit-name" class="form-input" maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>About / Status:</label>
+          <input id="edit-about" class="form-input" maxlength="120">
+        </div>
+        <div class="form-group">
+          <label>Avatar Color:</label>
+          <div class="color-swatches" id="edit-swatches">
+            <span class="color-swatch active" style="background:#00a884" data-color="#00a884"></span>
+            <span class="color-swatch" style="background:#008069" data-color="#008069"></span>
+            <span class="color-swatch" style="background:#1f7a8c" data-color="#1f7a8c"></span>
+            <span class="color-swatch" style="background:#7b2cbf" data-color="#7b2cbf"></span>
+            <span class="color-swatch" style="background:#e63946" data-color="#e63946"></span>
+            <span class="color-swatch" style="background:#f77f00" data-color="#f77f00"></span>
+          </div>
+        </div>
+        <button class="btn-wa" id="btn-save-edited-profile">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Image Lightbox Modal -->
+<div id="lightbox" class="wa-modal hide" style="background:rgba(0,0,0,0.9);cursor:pointer;">
+  <img id="lightbox-img" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;">
+</div>
+
+<script>
+// -------------------------------------------------------------
+// Core State & Utilities
+// -------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const DAY_MS = 24 * 60 * 60 * 1000;
+let myUser = null;
+let myToken = localStorage.getItem('wa_vanish_token') || null;
+let activePartnerPhone = null;
+let activeChatId = null;
+let eventSource = null;
+let typingTimeout = null;
+let selectedAvatarColor = '#00a884';
+
+// Helper: Format Time
+function formatMessageTime(ms) {
+  const d = new Date(ms);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// -------------------------------------------------------------
+// Phone Number Country Formatting & Validation
+// -------------------------------------------------------------
+$('country-code').onchange = (e) => {
+  if (e.target.value === '+custom') {
+    $('custom-code-box').classList.remove('hide');
+  } else {
+    $('custom-code-box').classList.add('hide');
+  }
+};
+
+function getFullPhoneNumber(selectId, inputId, customInputId) {
+  const sel = $(selectId).value;
+  let code = sel;
+  if (sel === '+custom' && customInputId) {
+    code = $(customInputId).value.trim();
+  }
+  const rawNum = $(inputId).value.trim().replace(/[^\d]/g, '');
+  if (!code.startsWith('+')) code = '+' + code.replace(/[^\d]/g, '');
+  return `${code}${rawNum}`;
+}
+
+// -------------------------------------------------------------
+// Authentication & Signup
+// -------------------------------------------------------------
+$('btn-send-code').onclick = async () => {
+  $('phone-err').textContent = '';
+  const fullPhone = getFullPhoneNumber('country-code', 'phone-number', 'custom-country-code');
+
+  try {
+    const res = await fetch('/api/auth/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: fullPhone })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed sending SMS OTP');
+
+    $('display-target-phone').textContent = data.phone;
+    $('step-phone').classList.add('hide');
+    $('step-otp').classList.remove('hide');
+    $('otp-input').focus();
+    if (data.devCode) $('otp-input').value = data.devCode;
+  } catch (err) {
+    $('phone-err').textContent = err.message;
+  }
+};
+
+$('btn-wrong-number').onclick = () => {
+  $('step-otp').classList.add('hide');
+  $('step-phone').classList.remove('hide');
+};
+
+$('btn-verify-otp').onclick = async () => {
+  $('otp-err').textContent = '';
+  const fullPhone = $('display-target-phone').textContent;
+  const code = $('otp-input').value.trim();
+
+  try {
+    const res = await fetch('/api/auth/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: fullPhone, code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+    myToken = data.token;
+    localStorage.setItem('wa_vanish_token', myToken);
+
+    if (data.isNewUser) {
+      // Prompt for name and profile details
+      $('step-otp').classList.add('hide');
+      $('step-profile').classList.remove('hide');
+      $('reg-name').focus();
+    } else {
+      // Existing user: direct login
+      myUser = data.user;
+      initAppSession();
+    }
+  } catch (err) {
+    $('otp-err').textContent = err.message;
+  }
+};
+
+// Profile Avatar Color Picker
+document.querySelectorAll('.color-swatch').forEach(sw => {
+  sw.onclick = () => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    selectedAvatarColor = sw.dataset.color;
+    $('avatar-preview').style.background = selectedAvatarColor;
+  };
+});
+
+$('reg-name').oninput = (e) => {
+  $('avatar-preview').textContent = getInitials(e.target.value) || 'U';
+};
+
+$('btn-save-profile').onclick = async () => {
+  $('profile-err').textContent = '';
+  const name = $('reg-name').value.trim();
+  const about = $('reg-about').value.trim();
+
+  if (!name || name.length < 2) {
+    $('profile-err').textContent = 'Please enter your name (at least 2 letters).';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${myToken}`
+      },
+      body: JSON.stringify({
+        name,
+        about,
+        avatarColor: selectedAvatarColor
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed saving profile');
+
+    myUser = data.user;
+    initAppSession();
+  } catch (err) {
+    $('profile-err').textContent = err.message;
+  }
+};
+
+// -------------------------------------------------------------
+// App Session Initialization
+// -------------------------------------------------------------
+async function checkExistingSession() {
+  if (!myToken) return;
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${myToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.user) {
+        myUser = data.user;
+        initAppSession();
+      }
+    } else {
+      localStorage.removeItem('wa_vanish_token');
+    }
+  } catch (e) {}
+}
+checkExistingSession();
+
+function initAppSession() {
+  $('auth-screen').classList.add('hide');
+  $('my-avatar').textContent = getInitials(myUser.name);
+  $('my-avatar').style.background = myUser.avatar_color || '#00a884';
+  $('my-display-name').textContent = myUser.name;
+  $('my-display-phone').textContent = myUser.phone;
+
+  setupRealTimeSSE();
+  loadChatsList();
+}
+
+$('btn-logout').onclick = async () => {
+  if (confirm('Log out of Vanish?')) {
+    if (myToken) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${myToken}` }
+      }).catch(() => {});
+    }
+    localStorage.removeItem('wa_vanish_token');
+    location.reload();
+  }
+};
+
+// -------------------------------------------------------------
+// Real-Time SSE Stream
+// -------------------------------------------------------------
+function setupRealTimeSSE() {
+  if (!myUser || !myUser.phone) return;
+  if (eventSource) eventSource.close();
+
+  eventSource = new EventSource(`/api/events?phone=${encodeURIComponent(myUser.phone)}`);
+
+  eventSource.addEventListener('message', (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (activeChatId && msg.chatId === activeChatId) {
+        appendMessageBubble(msg, true);
+        // Mark as read
+        fetch(`/api/messages?chatId=${encodeURIComponent(activeChatId)}&phone=${encodeURIComponent(myUser.phone)}`).catch(()=>{});
+      }
+      loadChatsList();
+    } catch (err) {}
+  });
+
+  eventSource.addEventListener('typing', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (activeChatId && data.chatId === activeChatId) {
+        const statusEl = $('convo-partner-status');
+        if (data.isTyping) {
+          statusEl.textContent = 'typing...';
+          statusEl.classList.add('online');
+        } else {
+          statusEl.textContent = 'online';
+        }
+      }
+    } catch (err) {}
+  });
+
+  eventSource.addEventListener('read_receipt', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (activeChatId && data.chatId === activeChatId) {
+        document.querySelectorAll('.bubble.me .ticks').forEach(el => {
+          el.className = 'ticks blue';
+          el.textContent = '✓✓';
+        });
+      }
+    } catch (err) {}
+  });
+
+  eventSource.addEventListener('presence', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (activePartnerPhone === data.phone) {
+        const statusEl = $('convo-partner-status');
+        if (data.isOnline) {
+          statusEl.textContent = 'online';
+          statusEl.classList.add('online');
+        } else {
+          statusEl.textContent = 'last seen recently';
+          statusEl.classList.remove('online');
+        }
+      }
+      loadChatsList();
+    } catch (err) {}
+  });
+
+  eventSource.addEventListener('vanish', (e) => {
+    try {
+      const { ids } = JSON.parse(e.data);
+      ids.forEach(id => {
+        const el = document.getElementById(`msg-${id}`);
+        if (el) {
+          el.classList.add('vanishing');
+          setTimeout(() => el.remove(), 450);
+        }
+      });
+      loadChatsList();
+    } catch (err) {}
+  });
+}
+
+// -------------------------------------------------------------
+// Chats List Rendering
+// -------------------------------------------------------------
+async function loadChatsList() {
+  if (!myUser) return;
+  try {
+    const res = await fetch(`/api/chats?phone=${encodeURIComponent(myUser.phone)}`);
+    const data = await res.json();
+    if (!data.ok) return;
+
+    renderChatRows(data.chats);
+  } catch (e) {}
+}
+
+function renderChatRows(chats) {
+  const container = $('chat-list');
+  container.innerHTML = '';
+
+  const filter = ($('chat-search-input').value || '').toLowerCase();
+  const filtered = chats.filter(c =>
+    (c.partnerName && c.partnerName.toLowerCase().includes(filter)) ||
+    (c.otherPhone && c.otherPhone.includes(filter))
+  );
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--wa-muted);font-size:14px;">No chats found. Tap 💬 to start a new chat!</div>`;
+    return;
+  }
+
+  filtered.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'chat-row' + (activeChatId === c.chatId ? ' active' : '');
+
+    let tickHtml = '';
+    if (c.from === myUser.phone) {
+      const tickClass = c.status === 'read' ? 'ticks blue' : 'ticks gray';
+      const tickMarks = c.status === 'sent' ? '✓' : '✓✓';
+      tickHtml = `<span class="${tickClass}" style="margin-right:4px;">${tickMarks}</span>`;
+    }
+
+    const snippetText = c.mediaType
+      ? (c.mediaType === 'video' ? '📹 Video' : '📷 Photo')
+      : (c.text || '');
+
+    const avatarInitial = getInitials(c.partnerName || c.otherPhone);
+    const avatarColor = c.partnerAvatarColor || '#00a884';
+
+    row.innerHTML = `
+      <div class="avatar" style="background:${avatarColor};">${avatarInitial}</div>
+      <div class="chat-row-info">
+        <div class="chat-row-header">
+          <span class="chat-name">${escapeHtml(c.partnerName || c.otherPhone)} ${c.isOnline ? '<span class="online-indicator"></span>' : ''}</span>
+          <span class="chat-time">${formatMessageTime(c.createdAt)}</span>
+        </div>
+        <div class="chat-row-body">
+          <span class="chat-snippet">${tickHtml}${escapeHtml(snippetText)}</span>
+          <span class="vanish-pill">⏱️ 24h</span>
+        </div>
+      </div>
+    `;
+
+    row.onclick = () => openConversation(c.otherPhone, c.partnerName, avatarColor, c.partnerAbout);
+    container.appendChild(row);
+  });
+}
+
+$('chat-search-input').oninput = () => loadChatsList();
+
+// -------------------------------------------------------------
+// Conversation View
+// -------------------------------------------------------------
+function getChatId(p1, p2) {
+  return [p1, p2].sort().join('_');
+}
+
+async function openConversation(otherPhone, name, avatarColor, about) {
+  activePartnerPhone = otherPhone;
+  activeChatId = getChatId(myUser.phone, otherPhone);
+
+  $('wa-container').classList.add('in-chat');
+  $('empty-state').classList.add('hide');
+  $('active-convo').classList.remove('hide');
+
+  $('convo-partner-name').textContent = name || otherPhone;
+  $('convo-partner-status').textContent = 'connecting...';
+  $('convo-partner-avatar').textContent = getInitials(name || otherPhone);
+  $('convo-partner-avatar').style.background = avatarColor || '#00a884';
+
+  loadConversationMessages();
+  loadChatsList();
+}
+
+$('back-btn').onclick = () => {
+  $('wa-container').classList.remove('in-chat');
+  activePartnerPhone = null;
+  activeChatId = null;
+  loadChatsList();
+};
+
+async function loadConversationMessages() {
+  if (!activeChatId) return;
+  try {
+    const res = await fetch(`/api/messages?chatId=${encodeURIComponent(activeChatId)}&phone=${encodeURIComponent(myUser.phone)}`);
+    const data = await res.json();
+    if (!data.ok) return;
+
+    const viewport = $('messages-viewport');
+    viewport.innerHTML = '';
+
+    data.messages.forEach(m => appendMessageBubble(m, false));
+    viewport.scrollTop = viewport.scrollHeight;
+  } catch (e) {}
+}
+
+function appendMessageBubble(msg, autoScroll = true) {
+  if (msg.id && document.getElementById(`msg-${msg.id}`)) return;
+
+  const viewport = $('messages-viewport');
+  const isMe = msg.from === myUser.phone;
+  const bubble = document.createElement('div');
+  if (msg.id) bubble.id = `msg-${msg.id}`;
+  bubble.className = 'bubble ' + (isMe ? 'me' : 'other');
+
+  let mediaHtml = '';
+  if (msg.mediaType === 'image' && msg.mediaUrl) {
+    mediaHtml = `<img src="${escapeHtml(msg.mediaUrl)}" loading="lazy" onclick="openLightbox('${escapeHtml(msg.mediaUrl)}')">`;
+  } else if (msg.mediaType === 'video' && msg.mediaUrl) {
+    mediaHtml = `<video src="${escapeHtml(msg.mediaUrl)}" controls preload="metadata"></video>`;
+  }
+
+  const hoursLeft = Math.max(0, Math.round((msg.expireAt - Date.now()) / 36e5));
+
+  let tickHtml = '';
+  if (isMe) {
+    const tickClass = msg.status === 'read' ? 'ticks blue' : 'ticks gray';
+    const tickMarks = msg.status === 'sent' ? '✓' : '✓✓';
+    tickHtml = `<span class="${tickClass}">${tickMarks}</span>`;
+  }
+
+  bubble.innerHTML = `
+    ${mediaHtml}
+    ${msg.text ? `<div>${escapeHtml(msg.text)}</div>` : ''}
+    <div class="bubble-meta">
+      <span class="bubble-timer">⏱️ ${hoursLeft}h left</span>
+      <span>${formatMessageTime(msg.createdAt)}</span>
+      ${tickHtml}
+    </div>
+  `;
+
+  viewport.appendChild(bubble);
+  if (autoScroll) {
+    viewport.scrollTop = viewport.scrollHeight;
+  }
+}
+
+// -------------------------------------------------------------
+// Message Sending & Typing Status
+// -------------------------------------------------------------
+$('msg-input').onkeydown = (e) => {
+  if (e.key === 'Enter') sendTextMessage();
+};
+
+$('msg-input').oninput = () => {
+  if (!activeChatId || !myUser) return;
+  fetch('/api/messages/typing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chatId: activeChatId, from: myUser.phone, isTyping: true })
+  }).catch(()=>{});
+
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    fetch('/api/messages/typing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: activeChatId, from: myUser.phone, isTyping: false })
+    }).catch(()=>{});
+  }, 1200);
+};
+
+$('btn-send-msg').onclick = sendTextMessage;
+
+async function sendTextMessage() {
+  const input = $('msg-input');
+  const text = input.value.trim();
+  if (!text || !activeChatId) return;
+
+  input.value = '';
+  try {
+    const res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId: activeChatId,
+        from: myUser.phone,
+        text
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      appendMessageBubble(data.message, true);
+      loadChatsList();
+    }
+  } catch (e) {
+    alert('Failed to send message.');
+  }
+}
+
+// -------------------------------------------------------------
+// Media Upload (Photos with Canvas Compress & Video with Duration Check)
+// -------------------------------------------------------------
+$('btn-attach-file').onclick = () => $('file-selector').click();
+
+$('file-selector').onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f || !activeChatId) return;
+
+  const type = f.type.startsWith('video') ? 'video' : 'image';
+  const indicator = $('uploading-indicator');
+  const statusText = $('upload-status-text');
+
+  indicator.classList.remove('hide');
+  statusText.textContent = type === 'video' ? 'Checking video duration...' : 'Compressing photo...';
+
+  try {
+    let uploadBlob = f;
+    if (type === 'video') {
+      const dur = await getVideoDuration(f);
+      if (dur > 120) {
+        indicator.classList.add('hide');
+        return alert('Videos are limited to 2 minutes maximum.');
+      }
+      if (f.size > 50 * 1024 * 1024) {
+        indicator.classList.add('hide');
+        return alert('Video exceeds 50MB file size limit.');
+      }
+    } else {
+      uploadBlob = await shrinkImage(f);
+    }
+
+    statusText.textContent = 'Uploading media...';
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': uploadBlob.type,
+        'X-Chat-Id': activeChatId,
+        'X-Sender-Phone': myUser.phone,
+        'X-Media-Type': type,
+        'X-File-Name': f.name
+      },
+      body: uploadBlob
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+    // Post message with media URL
+    const msgRes = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId: activeChatId,
+        from: myUser.phone,
+        mediaUrl: data.mediaUrl,
+        mediaType: type
+      })
+    });
+
+    const msgData = await msgRes.json();
+    if (msgData.ok) {
+      appendMessageBubble(msgData.message, true);
+      loadChatsList();
+    }
+  } catch (err) {
+    alert('Upload error: ' + err.message);
+  } finally {
+    indicator.classList.add('hide');
+  }
+};
+
+const getVideoDuration = f => new Promise((resolve, reject) => {
+  const v = document.createElement('video');
+  v.preload = 'metadata';
+  v.onloadedmetadata = () => { URL.revokeObjectURL(v.src); resolve(v.duration); };
+  v.onerror = reject;
+  v.src = URL.createObjectURL(f);
+});
+
+const shrinkImage = f => new Promise((resolve, reject) => {
+  const i = new Image();
+  i.onload = () => {
+    const s = Math.min(1, 1280 / Math.max(i.width, i.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(i.width * s);
+    c.height = Math.round(i.height * s);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(i, 0, 0, c.width, c.height);
+    c.toBlob(b => resolve(b), 'image/jpeg', 0.82);
+  };
+  i.onerror = reject;
+  i.src = URL.createObjectURL(f);
+});
+
+// -------------------------------------------------------------
+// Emoji Quick Reactions
+// -------------------------------------------------------------
+$('btn-toggle-emoji').onclick = () => {
+  $('emoji-panel').classList.toggle('hide');
+};
+
+document.querySelectorAll('.emoji-item').forEach(el => {
+  el.onclick = () => {
+    $('msg-input').value += el.textContent;
+    $('msg-input').focus();
+  };
+});
+
+// Lightbox
+function openLightbox(url) {
+  $('lightbox-img').src = url;
+  $('lightbox').classList.remove('hide');
+}
+$('lightbox').onclick = () => $('lightbox').classList.add('hide');
+
+// -------------------------------------------------------------
+// New Chat Modal & User Directory Search
+// -------------------------------------------------------------
+$('btn-new-chat-modal').onclick = openNewChatModal;
+$('btn-start-chat-empty').onclick = openNewChatModal;
+$('btn-close-new-chat').onclick = () => $('new-chat-modal').classList.add('hide');
+
+function openNewChatModal() {
+  $('new-chat-modal').classList.remove('hide');
+  $('modal-phone-input').value = '';
+  searchDirectory('');
+}
+
+$('modal-country-code').onchange = (e) => {
+  if (e.target.value === '+custom') {
+    const customCode = prompt('Enter international country code (e.g. +34):');
+    if (customCode) {
+      const opt = document.createElement('option');
+      opt.value = customCode.startsWith('+') ? customCode : '+' + customCode;
+      opt.textContent = opt.value;
+      opt.selected = true;
+      $('modal-country-code').appendChild(opt);
+    }
+  }
+};
+
+$('btn-start-chat-by-phone').onclick = () => {
+  const fullPhone = getFullPhoneNumber('modal-country-code', 'modal-phone-input');
+  if (fullPhone.length < 8 || fullPhone === myUser.phone) {
+    alert('Please enter a valid phone number with country code different from yours.');
+    return;
+  }
+  $('new-chat-modal').classList.add('hide');
+  openConversation(fullPhone, fullPhone, '#00a884', '');
+};
+
+$('dir-search-input').oninput = (e) => searchDirectory(e.target.value);
+
+async function searchDirectory(query) {
+  const container = $('directory-list');
+  try {
+    const res = await fetch(`/api/users/search?q=${encodeURIComponent(query || ' ')}`, {
+      headers: { 'Authorization': `Bearer ${myToken}` }
+    });
+    const data = await res.json();
+    container.innerHTML = '';
+    if (!data.users || !data.users.length) {
+      container.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--wa-muted);text-align:center;">No users registered yet.</div>`;
+      return;
+    }
+    data.users.forEach(u => {
+      const row = document.createElement('div');
+      row.className = 'chat-row';
+      row.style.padding = '8px 4px';
+      row.innerHTML = `
+        <div class="avatar" style="background:${u.avatar_color || '#00a884'};width:34px;height:34px;font-size:13px;">${getInitials(u.name)}</div>
+        <div class="chat-row-info">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(u.name)}</div>
+          <div style="font-size:12px;color:var(--wa-muted);">${escapeHtml(u.about || u.phone)}</div>
+        </div>
+      `;
+      row.onclick = () => {
+        $('new-chat-modal').classList.add('hide');
+        openConversation(u.phone, u.name, u.avatar_color, u.about);
+      };
+      container.appendChild(row);
+    });
+  } catch (e) {}
+}
+
+// -------------------------------------------------------------
+// Profile Editing Modal
+// -------------------------------------------------------------
+$('my-profile-trigger').onclick = () => {
+  if (!myUser) return;
+  $('edit-name').value = myUser.name;
+  $('edit-about').value = myUser.about || '';
+  $('profile-modal').classList.remove('hide');
+};
+
+$('btn-close-profile-modal').onclick = () => $('profile-modal').classList.add('hide');
+
+$('btn-save-edited-profile').onclick = async () => {
+  const name = $('edit-name').value.trim();
+  const about = $('edit-about').value.trim();
+  if (!name || name.length < 2) return alert('Name must be at least 2 characters');
+
+  try {
+    const res = await fetch('/api/users/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${myToken}`
+      },
+      body: JSON.stringify({ name, about, avatarColor: selectedAvatarColor })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      myUser = data.user;
+      $('my-avatar').textContent = getInitials(myUser.name);
+      $('my-avatar').style.background = myUser.avatar_color;
+      $('my-display-name').textContent = myUser.name;
+      $('profile-modal').classList.add('hide');
+      loadChatsList();
+    }
+  } catch (e) {
+    alert('Failed updating profile');
+  }
+};
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

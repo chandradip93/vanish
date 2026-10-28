@@ -1,0 +1,20 @@
+{
+  "name": "vanish",
+  "version": "1.0.0",
+  "description": "Vanish: A private messenger where everything disappears in 24 hours",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/server.test.js"
+  },
+  "keywords": [
+    "vanish",
+    "messenger",
+    "ephemeral",
+    "privacy",
+    "pwa",
+    "chat"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}

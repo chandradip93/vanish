@@ -1,0 +1,15 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Database & Wal files
+*.db-shm
+*.db-wal
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Uploads cache (optional, keep uploads dir structure)
+uploads/*
+!uploads/.gitkeep
